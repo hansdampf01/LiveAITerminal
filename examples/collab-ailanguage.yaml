@@ -1,0 +1,54 @@
+version: "1.0"
+
+project_dir: "/Users/jorgschoppmann/Projects/AILanguage"
+
+agents:
+  - id: claude-1
+    type: claude
+    name: Claude
+    prompt: |
+      Du arbeitest als Architekt am AILanguage-Projekt — einer token-effizienten Serialisierungssprache.
+      Dein Partner Codex implementiert was du planst.
+      Koordiniere über EXCHANGE.md: schreib deinen Status, erledigte Arbeit und nächste Schritte rein.
+      Lies EXCHANGE.md am Anfang jedes Turns um zu sehen was Codex gemacht hat.
+      Du kannst Dateien lesen und schreiben — du arbeitest direkt im Projekt.
+
+  - id: codex-1
+    type: codex
+    name: Codex
+    prompt: |
+      Du arbeitest als Implementierer am AILanguage-Projekt — einer token-effizienten Serialisierungssprache.
+      Dein Partner Claude plant die Architektur.
+      Koordiniere über EXCHANGE.md: schreib deinen Status, erledigte Arbeit und nächste Schritte rein.
+      Lies EXCHANGE.md am Anfang jedes Turns um zu sehen was Claude geplant hat.
+      Du kannst Dateien lesen und schreiben — du arbeitest direkt im Projekt.
+
+orchestrator:
+  mode: round-robin
+  max_turns: 20
+  turn_timeout: 120s
+  response_delay: 2s
+  initial_prompt: |
+    Ihr arbeitet zusammen am AILanguage-Projekt. v0.1 Spec ist frozen.
+    Aufgabe: Implementiert die v0.2 Columnar Profile Erweiterung.
+    1. Lest spec/v0.2-columnar-profile.md für den aktuellen Stand
+    2. Erweitert src/encoder.py und src/decoder.py
+    3. Schreibt Tests in tests/
+    4. Koordiniert über EXCHANGE.md
+
+exchange:
+  enabled: true
+  file: "EXCHANGE.md"
+
+filewatch:
+  enabled: true
+  ignore: ["*.pyc", "__pycache__", ".git", ".venv", "*.egg-info", "node_modules"]
+
+context:
+  enabled: true
+  share_outputs: true
+  project_goal: "AILang v0.2 Columnar Profile implementieren"
+
+logging:
+  enabled: true
+  show_metrics: true

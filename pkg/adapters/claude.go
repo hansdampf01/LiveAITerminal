@@ -127,6 +127,9 @@ func (c *ClaudeAgent) SendMessage(ctx context.Context, messages []agent.Message)
 
 	// Claude CLI takes prompt via stdin
 	cmd := exec.CommandContext(ctx, c.execPath, args...)
+	if c.Config.WorkingDir != "" {
+		cmd.Dir = c.Config.WorkingDir
+	}
 	cmd.Stdin = strings.NewReader(prompt)
 
 	startTime := time.Now()
@@ -184,6 +187,9 @@ func (c *ClaudeAgent) StreamMessage(ctx context.Context, messages []agent.Messag
 
 	// Claude CLI takes prompt via stdin
 	cmd := exec.CommandContext(ctx, c.execPath, args...)
+	if c.Config.WorkingDir != "" {
+		cmd.Dir = c.Config.WorkingDir
+	}
 	cmd.Stdin = strings.NewReader(prompt)
 
 	stdout, err := cmd.StdoutPipe()

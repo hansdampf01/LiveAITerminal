@@ -18,6 +18,8 @@ import (
 type Config struct {
 	// Version is the configuration file format version
 	Version string `yaml:"version"`
+	// ProjectDir is the shared project directory — cascades to all agents without own WorkingDir
+	ProjectDir string `yaml:"project_dir"`
 	// Agents is the list of agent configurations
 	Agents []agent.AgentConfig `yaml:"agents"`
 	// Orchestrator defines conversation orchestration settings
@@ -32,6 +34,22 @@ type Config struct {
 	Terminal TerminalConfig `yaml:"terminal"`
 	// Context defines cross-AI context bridging settings
 	Context ContextConfig `yaml:"context"`
+	// Exchange defines EXCHANGE.md coordination settings
+	Exchange ExchangeConfig `yaml:"exchange"`
+	// FileWatch defines file change detection settings
+	FileWatch FileWatchConfig `yaml:"filewatch"`
+}
+
+// ExchangeConfig defines EXCHANGE.md coordination settings.
+type ExchangeConfig struct {
+	Enabled bool   `yaml:"enabled"`
+	File    string `yaml:"file"` // default: "EXCHANGE.md"
+}
+
+// FileWatchConfig defines file change detection settings.
+type FileWatchConfig struct {
+	Enabled bool     `yaml:"enabled"`
+	Ignore  []string `yaml:"ignore"` // glob patterns to ignore
 }
 
 // MemoryConfig defines mem0-brain integration settings.
@@ -301,5 +319,19 @@ func (c *Config) applyDefaults() {
 		if c.Agents[i].MaxTokens == 0 {
 			c.Agents[i].MaxTokens = 2000
 		}
+		// Cascade ProjectDir to agents without own WorkingDir
+		if c.Agents[i].WorkingDir == "" && c.ProjectDir != "" {
+			c.Agents[i].WorkingDir = c.ProjectDir
+		}
+	}
+
+	// Exchange defaults
+	if c.Exchange.File == "" {
+		c.Exchange.File = "EXCHANGE.md"
+	}
+
+	// FileWatch defaults
+	if c.FileWatch.Enabled && len(c.FileWatch.Ignore) == 0 {
+		c.FileWatch.Ignore = []string{"*.pyc", "__pycache__", ".git", "node_modules", ".venv", "*.egg-info"}
 	}
 }

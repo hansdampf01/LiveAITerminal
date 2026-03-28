@@ -69,6 +69,8 @@ type AgentConfig struct {
 	RateLimit float64 `yaml:"rate_limit"`
 	// RateLimitBurst is the maximum burst size for rate limiting (default: 1)
 	RateLimitBurst int `yaml:"rate_limit_burst"`
+	// WorkingDir is the directory where the agent's CLI subprocess runs
+	WorkingDir string `yaml:"working_dir"`
 	// CustomSettings allows agent-specific configuration options
 	CustomSettings map[string]interface{} `yaml:"custom_settings"`
 }

@@ -22,6 +22,8 @@ import (
 	"github.com/kevinelliott/agentpipe/pkg/config"
 	agentcontext "github.com/kevinelliott/agentpipe/pkg/context"
 	"github.com/kevinelliott/agentpipe/pkg/conversation"
+	"github.com/kevinelliott/agentpipe/pkg/exchange"
+	"github.com/kevinelliott/agentpipe/pkg/filewatch"
 	"github.com/kevinelliott/agentpipe/pkg/log"
 	"github.com/kevinelliott/agentpipe/pkg/logger"
 	"github.com/kevinelliott/agentpipe/pkg/memory"
@@ -643,6 +645,29 @@ func setupExtensions(orch *orchestrator.Orchestrator, cfg *config.Config) {
 			orch.AddMiddleware(agentcontext.ContextBridgeMiddleware(ctxBridge))
 			log.Info("context: cross-AI bridging middleware enabled")
 		}
+	}
+
+	// 4. File change detection
+	if cfg.FileWatch.Enabled && cfg.ProjectDir != "" {
+		watcher := filewatch.NewWatcher(cfg.ProjectDir, cfg.FileWatch.Ignore)
+		if err := watcher.InitialSnapshot(); err != nil {
+			log.WithFields(map[string]interface{}{
+				"error": err.Error(),
+			}).Warn("filewatch: initial snapshot failed")
+		} else {
+			orch.AddMiddleware(filewatch.FileChangeMiddleware(watcher))
+			log.WithField("project_dir", cfg.ProjectDir).Info("filewatch: file change detection enabled")
+		}
+	}
+
+	// 5. EXCHANGE.md coordination
+	if cfg.Exchange.Enabled && cfg.ProjectDir != "" {
+		mgr := exchange.NewManager(cfg.ProjectDir, cfg.Exchange.File)
+		orch.AddMiddleware(exchange.ExchangeMiddleware(mgr))
+		log.WithFields(map[string]interface{}{
+			"file":        cfg.Exchange.File,
+			"project_dir": cfg.ProjectDir,
+		}).Info("exchange: EXCHANGE.md coordination enabled")
 	}
 }
 

@@ -129,6 +129,9 @@ func (c *CodexAgent) SendMessage(ctx context.Context, messages []agent.Message) 
 
 	// Use stdin for the prompt
 	cmd := exec.CommandContext(ctx, c.execPath, args...)
+	if c.Config.WorkingDir != "" {
+		cmd.Dir = c.Config.WorkingDir
+	}
 	cmd.Stdin = strings.NewReader(prompt)
 
 	startTime := time.Now()
@@ -299,6 +302,9 @@ func (c *CodexAgent) StreamMessage(ctx context.Context, messages []agent.Message
 
 	// Use stdin for the prompt
 	cmd := exec.CommandContext(ctx, c.execPath, args...)
+	if c.Config.WorkingDir != "" {
+		cmd.Dir = c.Config.WorkingDir
+	}
 	cmd.Stdin = strings.NewReader(prompt)
 
 	stdout, err := cmd.StdoutPipe()

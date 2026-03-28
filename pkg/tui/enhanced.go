@@ -639,7 +639,9 @@ func (m EnhancedModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.messages = append(m.messages, initMsg)
 		m.conversation.SetContent(m.renderConversation())
-		m.conversation.GotoBottom()
+		if m.conversation.Height > 0 {
+			m.conversation.GotoBottom()
+		}
 
 	case agentInitComplete:
 		if msg.err != nil {
@@ -653,7 +655,9 @@ func (m EnhancedModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.messages = append(m.messages, errMsg)
 			m.conversation.SetContent(m.renderConversation())
-			m.conversation.GotoBottom()
+			if m.conversation.Height > 0 {
+				m.conversation.GotoBottom()
+			}
 			m.err = msg.err
 			return m, nil
 		}
@@ -685,7 +689,9 @@ func (m EnhancedModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.messages = append(m.messages, successMsg)
 		m.conversation.SetContent(m.renderConversation())
-		m.conversation.GotoBottom()
+		if m.conversation.Height > 0 {
+			m.conversation.GotoBottom()
+		}
 
 		// Don't add agents here - they'll be added in startConversation
 		// Mark as running before starting conversation
@@ -732,7 +738,9 @@ func (m EnhancedModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.running = false
 			}
 			m.conversation.SetContent(m.renderConversation())
-			m.conversation.GotoBottom()
+			if m.conversation.Height > 0 {
+				m.conversation.GotoBottom()
+			}
 		}
 		// Continue polling for messages only if still running
 		if m.running {
