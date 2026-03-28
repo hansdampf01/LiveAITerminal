@@ -1,0 +1,52 @@
+version: "1.0"
+
+agents:
+  - id: claude-1
+    type: claude
+    name: Claude
+    prompt: "You are a collaborative AI coding assistant. Share your reasoning and work with other agents."
+    announcement: "Claude has joined the session"
+
+  - id: codex-1
+    type: codex
+    name: Codex
+    prompt: "You are a collaborative AI coding assistant. Build on other agents' work and share your approach."
+    announcement: "Codex has joined the session"
+
+orchestrator:
+  mode: round-robin
+  max_turns: 20
+  turn_timeout: 120s
+  response_delay: 2s
+  initial_prompt: "Let's collaborate on this task. Share your approach and build on each other's work."
+  summary:
+    enabled: true
+    agent: claude
+
+logging:
+  enabled: true
+  show_metrics: true
+
+# LiveAITerminal Extensions
+
+memory:
+  enabled: true
+  base_url: "https://brain.jajoe.xyz/api/v1"
+  # token: set via MEMORY_TOKEN env var
+  source: "agentpipe"
+  timeout_seconds: 180
+  enrich_prompts: true     # Query mem0 for context before each agent turn
+  store_responses: true    # Save agent responses to mem0
+  store_summaries: true    # Save conversation summaries
+
+terminal:
+  enabled: true
+  shell: "/bin/zsh"
+  working_dir: "."
+  inject_context: true     # Agents see recent terminal output
+  context_lines: 30
+
+context:
+  enabled: true
+  share_outputs: true      # Agents see each other's recent work
+  project_goal: ""         # Set per-session via --prompt or config

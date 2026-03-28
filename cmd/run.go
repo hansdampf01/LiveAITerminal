@@ -20,10 +20,13 @@ import (
 	_ "github.com/kevinelliott/agentpipe/pkg/adapters"
 	"github.com/kevinelliott/agentpipe/pkg/agent"
 	"github.com/kevinelliott/agentpipe/pkg/config"
+	agentcontext "github.com/kevinelliott/agentpipe/pkg/context"
 	"github.com/kevinelliott/agentpipe/pkg/conversation"
 	"github.com/kevinelliott/agentpipe/pkg/log"
 	"github.com/kevinelliott/agentpipe/pkg/logger"
+	"github.com/kevinelliott/agentpipe/pkg/memory"
 	"github.com/kevinelliott/agentpipe/pkg/orchestrator"
+	"github.com/kevinelliott/agentpipe/pkg/terminal"
 	"github.com/kevinelliott/agentpipe/pkg/tui"
 )
 
@@ -424,6 +427,9 @@ func startConversation(cmd *cobra.Command, cfg *config.Config, stdoutEmitter *br
 		"show_metrics": cfg.Logging.ShowMetrics,
 	}).Info("starting agentpipe conversation")
 
+	// Set up LiveAITerminal extensions: memory, terminal, context bridge
+	setupExtensions(orch, cfg)
+
 	for _, a := range agentsList {
 		orch.AddAgent(a)
 	}
@@ -570,6 +576,74 @@ func printSessionSummary(orch *orchestrator.Orchestrator, cfg *config.Config) {
 
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Println("Session ended. All messages logged.")
+}
+
+// setupExtensions configures LiveAITerminal-specific middleware:
+// mem0-brain memory, shared terminal observation, and cross-AI context bridging.
+func setupExtensions(orch *orchestrator.Orchestrator, cfg *config.Config) {
+	// 1. Memory integration (mem0-brain)
+	if cfg.Memory.Enabled {
+		token := cfg.Memory.Token
+		if token == "" {
+			token = os.Getenv("MEMORY_TOKEN")
+		}
+
+		timeout := time.Duration(cfg.Memory.TimeoutSeconds) * time.Second
+		if timeout == 0 {
+			timeout = 180 * time.Second
+		}
+
+		memClient := memory.NewClient(memory.ClientConfig{
+			BaseURL: cfg.Memory.BaseURL,
+			Token:   token,
+			Timeout: timeout,
+			Source:  cfg.Memory.Source,
+			Enabled: true,
+		})
+
+		if cfg.Memory.StoreResponses {
+			orch.AddMiddleware(memory.StorageMiddleware(memClient))
+			log.Info("memory: response storage middleware enabled")
+		}
+		if cfg.Memory.EnrichPrompts {
+			orch.AddMiddleware(memory.EnrichmentMiddleware(memClient, nil))
+			log.Info("memory: prompt enrichment middleware enabled")
+		}
+		if cfg.Memory.StoreSummaries {
+			orch.AddMiddleware(memory.SummaryMiddleware(memClient))
+			log.Info("memory: summary storage middleware enabled")
+		}
+	}
+
+	// 2. Shared terminal observation
+	if cfg.Terminal.Enabled {
+		session := terminal.NewSession(terminal.SessionConfig{
+			Shell:      cfg.Terminal.Shell,
+			WorkingDir: cfg.Terminal.WorkingDir,
+			MaxHistory: 500,
+		})
+
+		if cfg.Terminal.InjectContext {
+			lines := cfg.Terminal.ContextLines
+			if lines == 0 {
+				lines = 30
+			}
+			orch.AddMiddleware(terminal.ContextInjectionMiddleware(session, lines))
+			log.Info("terminal: context injection middleware enabled")
+		}
+	}
+
+	// 3. Cross-AI context bridging
+	if cfg.Context.Enabled {
+		ctxBridge := agentcontext.NewBridge()
+		if cfg.Context.ProjectGoal != "" {
+			ctxBridge.SetProjectGoal(cfg.Context.ProjectGoal)
+		}
+		if cfg.Context.ShareOutputs {
+			orch.AddMiddleware(agentcontext.ContextBridgeMiddleware(ctxBridge))
+			log.Info("context: cross-AI bridging middleware enabled")
+		}
+	}
 }
 
 // determineShouldStream determines if streaming should be enabled based on CLI flags.

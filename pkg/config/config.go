@@ -26,6 +26,56 @@ type Config struct {
 	Logging LoggingConfig `yaml:"logging"`
 	// Bridge defines streaming bridge settings
 	Bridge BridgeConfig `yaml:"bridge"`
+	// Memory defines mem0-brain integration settings
+	Memory MemoryConfig `yaml:"memory"`
+	// Terminal defines shared terminal session settings
+	Terminal TerminalConfig `yaml:"terminal"`
+	// Context defines cross-AI context bridging settings
+	Context ContextConfig `yaml:"context"`
+}
+
+// MemoryConfig defines mem0-brain integration settings.
+type MemoryConfig struct {
+	// Enabled toggles memory integration (default: false)
+	Enabled bool `yaml:"enabled"`
+	// BaseURL is the mem0-brain API endpoint (e.g., "https://brain.jajoe.xyz/api/v1")
+	BaseURL string `yaml:"base_url"`
+	// Token is the Bearer token for authentication (can also use MEMORY_TOKEN env var)
+	Token string `yaml:"token"`
+	// Source identifies this client in stored memories (default: "agentpipe")
+	Source string `yaml:"source"`
+	// TimeoutSeconds for mem0 requests (default: 180, because mem0 can be slow)
+	TimeoutSeconds int `yaml:"timeout_seconds"`
+	// EnrichPrompts queries mem0 for relevant context before each agent turn
+	EnrichPrompts bool `yaml:"enrich_prompts"`
+	// StoreResponses saves agent responses to mem0
+	StoreResponses bool `yaml:"store_responses"`
+	// StoreSummaries saves conversation summaries to mem0
+	StoreSummaries bool `yaml:"store_summaries"`
+}
+
+// TerminalConfig defines shared terminal session settings.
+type TerminalConfig struct {
+	// Enabled toggles shared terminal (default: false)
+	Enabled bool `yaml:"enabled"`
+	// Shell is the shell to use (default: $SHELL or /bin/sh)
+	Shell string `yaml:"shell"`
+	// WorkingDir is the initial working directory
+	WorkingDir string `yaml:"working_dir"`
+	// InjectContext injects recent terminal output into agent prompts
+	InjectContext bool `yaml:"inject_context"`
+	// ContextLines is the number of recent output lines to inject (default: 30)
+	ContextLines int `yaml:"context_lines"`
+}
+
+// ContextConfig defines cross-AI context bridging settings.
+type ContextConfig struct {
+	// Enabled toggles context bridging (default: true when multiple agents)
+	Enabled bool `yaml:"enabled"`
+	// ShareOutputs shares agent outputs with other agents as context
+	ShareOutputs bool `yaml:"share_outputs"`
+	// ProjectGoal is a shared goal injected into all agent prompts
+	ProjectGoal string `yaml:"project_goal"`
 }
 
 // OrchestratorConfig defines how the orchestrator manages conversations.
