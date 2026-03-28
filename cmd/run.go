@@ -136,10 +136,10 @@ func runConversation(cobraCmd *cobra.Command, args []string) {
 	if maxTurns > 0 {
 		cfg.Orchestrator.MaxTurns = maxTurns
 	}
-	if turnTimeout > 0 {
+	if cobraCmd.Flags().Changed("timeout") {
 		cfg.Orchestrator.TurnTimeout = time.Duration(turnTimeout) * time.Second
 	}
-	if responseDelay > 0 {
+	if cobraCmd.Flags().Changed("delay") {
 		cfg.Orchestrator.ResponseDelay = time.Duration(responseDelay) * time.Second
 	}
 	if initialPrompt != "" {

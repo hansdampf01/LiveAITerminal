@@ -1,0 +1,20 @@
+version: "1.0"
+
+project_dir: "/Users/jorgschoppmann/Projects/AILanguage"
+
+agents:
+  - id: codex-1
+    type: codex
+    name: Codex
+    prompt: "Du arbeitest am AILanguage-Projekt. Lies die Dateien und beschreibe kurz was du siehst."
+
+orchestrator:
+  mode: round-robin
+  max_turns: 2
+  turn_timeout: 60s
+  response_delay: 1s
+  initial_prompt: "Lies EXCHANGE.md und sag was drin steht."
+
+logging:
+  enabled: true
+  show_metrics: true

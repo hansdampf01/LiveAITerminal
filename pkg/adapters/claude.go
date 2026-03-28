@@ -117,15 +117,14 @@ func (c *ClaudeAgent) SendMessage(ctx context.Context, messages []agent.Message)
 	// Build prompt with structured format
 	prompt := c.buildPrompt(relevantMessages, true)
 
-	// Build command args
-	args := []string{}
+	// Build command args — use -p - to read prompt from stdin
+	args := []string{"-p", "-", "--output-format", "text"}
 
 	// Add model flag if specified
 	if c.Config.Model != "" {
 		args = append(args, "--model", c.Config.Model)
 	}
 
-	// Claude CLI takes prompt via stdin
 	cmd := exec.CommandContext(ctx, c.execPath, args...)
 	if c.Config.WorkingDir != "" {
 		cmd.Dir = c.Config.WorkingDir
@@ -177,15 +176,14 @@ func (c *ClaudeAgent) StreamMessage(ctx context.Context, messages []agent.Messag
 	// Build prompt with structured format
 	prompt := c.buildPrompt(relevantMessages, true)
 
-	// Build command args
-	args := []string{}
+	// Build command args — use -p - to read prompt from stdin
+	args := []string{"-p", "-", "--output-format", "text"}
 
 	// Add model flag if specified
 	if c.Config.Model != "" {
 		args = append(args, "--model", c.Config.Model)
 	}
 
-	// Claude CLI takes prompt via stdin
 	cmd := exec.CommandContext(ctx, c.execPath, args...)
 	if c.Config.WorkingDir != "" {
 		cmd.Dir = c.Config.WorkingDir
